@@ -1,0 +1,9 @@
+# Runtime: inference CLI + web server.
+# On Colab, TensorFlow is preinstalled — only the extras below are needed.
+tensorflow>=2.16,<2.19        # use tensorflow-cpu on machines without a GPU
+numpy>=1.26
+pillow>=10.0
+pillow-heif>=0.16             # optional: iPhone HEIC photos
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9

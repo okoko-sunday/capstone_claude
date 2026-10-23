@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cat, Dog, or Neither</title>
+  <meta name="description" content="Sorts photographs into three piles: dog, cat, and neither." />
+  <meta name="theme-color" content="#07080d" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <!-- Fonts are progressive: offline, the system font stack takes over. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script>
+    try { const t = localStorage.getItem("catdog-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+  </script>
+</head>
+<body>
+  <!-- Ambient background: aurora blobs + masked grid -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg__grid"></div>
+    <div class="bg__blob bg__blob--1"></div>
+    <div class="bg__blob bg__blob--2"></div>
+    <div class="bg__blob bg__blob--3"></div>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="g-brand" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#a78bfa"/><stop offset=".55" stop-color="#60a5fa"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient>
+    </defs>
+    <symbol id="i-paw" viewBox="0 0 24 24"><g fill="currentColor"><ellipse cx="6" cy="10" rx="2.2" ry="2.8"/><ellipse cx="10" cy="5.6" rx="2.2" ry="2.9"/><ellipse cx="14.4" cy="5.6" rx="2.2" ry="2.9"/><ellipse cx="18.2" cy="10" rx="2.2" ry="2.8"/><path d="M12.2 11.2c-3.2 0-6.2 3.6-6.2 6.4 0 1.9 1.4 2.9 3.1 2.9 1.4 0 2.1-.7 3.1-.7s1.7.7 3.1.7c1.7 0 3.1-1 3.1-2.9 0-2.8-3-6.4-6.2-6.4z"/></g></symbol>
+    <symbol id="i-cat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" d="M4 4.5 7.6 8a9 9 0 0 1 8.8 0L20 4.5V13a8 8 0 0 1-16 0zM9 13h.01M15 13h.01M10.6 16.2 12 17l1.4-.8M2 15.5l4 .3M2 18.5l4-.9M22 15.5l-4 .3M22 18.5l-4-.9"/></symbol>
+    <symbol id="i-dog" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" d="M7 5.5C5 4 3 5 2.6 7.6c-.4 2.6.6 5.3 2.4 5.7M17 5.5c2-1.5 4-.5 4.4 2.1.4 2.6-.6 5.3-2.4 5.7M7 5.5A7 7 0 0 1 17 5.5c1.3 1.4 2 3.4 2 5.6V14a7 7 0 0 1-14 0v-2.9c0-2.2.7-4.2 2-5.6zM9.5 11.5h.01M14.5 11.5h.01M10.5 15.5h3l-1.5 1.8z"/></symbol>
+    <symbol id="i-neither" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 18 18 6"/></g></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></g></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0 4.5-4.5M12 16l-4.5-4.5M4 20h16"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></g></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M6.5 6.5l11 11m0-11-11 11"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 10v4m0 3h.01"/></g></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9.5h.01"/></g></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 0 0-14.3-4.9L4 8m0-4v4h4m-4 5a8 8 0 0 0 14.3 4.9L20 16m0 4v-4h-4"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5c.5 4.6 2.9 7 7.5 7.5-4.6.5-7 2.9-7.5 7.5-.5-4.6-2.9-7-7.5-7.5 4.6-.5 7-2.9 7.5-7.5zM19 15.5c.2 1.9 1.2 2.9 3 3-1.8.2-2.8 1.2-3 3-.2-1.8-1.2-2.8-3-3 1.8-.1 2.8-1.1 3-3z"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9.5 2.5v3m5-3v3m-5 13v3m5-3v3M2.5 9.5h3m-3 5h3m13-5h3m-3 5h3"/></g></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></g></symbol>
+    <symbol id="i-api" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m8 8-4 4 4 4m8-8 4 4-4 4m-2.5-10-3 12"/></symbol>
+  </svg>
+
+  <!-- ============================== NAV ============================== -->
+  <header class="nav">
+    <div class="nav__inner glass">
+      <a class="brand" href="/" aria-label="Cat, Dog, or Neither — home">
+        <span class="brand__orb"><svg><use href="#i-paw"/></svg></span>
+        <span class="brand__name">CatDog<span class="grad">AI</span></span>
+      </a>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <span class="tabs__ink" aria-hidden="true"></span>
+        <button class="tab is-active" role="tab" aria-selected="true" data-view="classify"><svg><use href="#i-spark"/></svg><span>Classify</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-view="evaluate"><svg><use href="#i-target"/></svg><span>Evaluate</span><span class="tab__badge" id="eval-badge" hidden></span></button>
+        <button class="tab" role="tab" aria-selected="false" data-view="model"><svg><use href="#i-chip"/></svg><span>Model</span></button>
+      </nav>
+      <div class="nav__actions">
+        <span class="status" id="status-pill" data-state="loading"><span class="status__dot"></span><span id="status-text">Connecting…</span></span>
+        <a class="icon-btn" href="/docs" target="_blank" rel="noopener" title="API documentation" aria-label="API documentation"><svg><use href="#i-api"/></svg></a>
+        <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle colour theme"><svg><use href="#i-sun"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner glass" id="no-model-banner" hidden>
+    <span class="banner__icon"><svg><use href="#i-alert"/></svg></span>
+    <div class="banner__text">
+      <strong>No trained model is loaded</strong>
+      <span id="no-model-detail">Train in Colab (notebooks/capstone.ipynb), copy <code>model.keras</code> and <code>model_meta.json</code> into <code>artifacts/</code>, then reload.</span>
+    </div>
+    <button class="btn btn--glass btn--sm" id="reload-model"><svg><use href="#i-refresh"/></svg>Reload</button>
+  </div>
+
+  <main class="page">
+    <!-- ============================== CLASSIFY ============================== -->
+    <section class="view is-active" id="view-classify" role="tabpanel" aria-label="Classify">
+      <div class="hero">
+        <div class="hero__copy">
+          <span class="kicker"><span class="kicker__dot"></span>Open-set image recognition</span>
+          <h1 class="hero__title">
+            Is it a <span class="rotator" id="rotator" aria-live="off"><span class="rotator__word is-in" data-c="dog">dog</span></span><br />
+            <span class="hero__title-sub">or is it <span class="grad">neither?</span></span>
+          </h1>
+          <p class="hero__lede">Drop a folder of photographs of any size, shape or quality. The model sorts them into three piles — and says <strong>“neither”</strong> instead of forcing a plate of jollof rice into the dog pile.</p>
+          <ul class="hero__facts" id="hero-facts">
+            <li><span class="fact__k">Approach</span><span class="fact__v">3-class + threshold</span></li>
+            <li><span class="fact__k">Backbone</span><span class="fact__v" id="fact-backbone">—</span></li>
+            <li><span class="fact__k">Threshold τ</span><span class="fact__v" id="fact-tau">—</span></li>
+          </ul>
+        </div>
+
+        <div class="drop" id="dropzone" tabindex="0" role="button" aria-label="Drop photos or a folder, or press Enter to choose photos">
+          <div class="drop__inner">
+            <input type="file" id="file-input" accept="image/*,.heic,.heif" multiple hidden />
+            <input type="file" id="folder-input" webkitdirectory directory multiple hidden />
+            <div class="drop__orb">
+              <span class="drop__ring"></span><span class="drop__ring drop__ring--2"></span>
+              <svg><use href="#i-upload"/></svg>
+            </div>
+            <span class="drop__title">Drop photos or a whole folder</span>
+            <span class="drop__hint">JPEG · PNG · WebP · HEIC — portrait or landscape — 4000×3000 and beyond</span>
+            <span class="drop__buttons">
+              <button type="button" class="btn btn--primary" id="pick-files"><svg><use href="#i-image"/></svg>Choose photos</button>
+              <button type="button" class="btn btn--glass" id="pick-folder"><svg><use href="#i-folder"/></svg>Choose folder</button>
+            </span>
+            <span class="progress" id="progress" hidden><span class="progress__bar" id="progress-bar"></span></span>
+            <span class="drop__status" id="progress-text" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="results-area" hidden>
+        <div class="piles" id="piles"></div>
+
+        <div class="toolbar glass">
+          <div class="chips" id="filters" role="group" aria-label="Filter results">
+            <button class="chip is-active" data-filter="all">All</button>
+            <button class="chip" data-filter="dog">Dog</button>
+            <button class="chip" data-filter="cat">Cat</button>
+            <button class="chip" data-filter="neither">Neither</button>
+            <button class="chip" data-filter="unsure" title="Below 70% confidence or overridden by the threshold">Unsure</button>
+            <button class="chip" data-filter="wrong" title="Prediction differs from the true label you set">Mistakes</button>
+          </div>
+          <div class="toolbar__right">
+            <div class="segmented" role="group" aria-label="Layout">
+              <button class="seg is-active" data-layout="grid" aria-label="Grid view" title="Grid"><svg><use href="#i-grid"/></svg></button>
+              <button class="seg" data-layout="table" aria-label="Table view" title="Table"><svg><use href="#i-list"/></svg></button>
+            </div>
+            <button class="btn btn--glass btn--sm" id="copy-table" title="Copy in the brief's table format"><svg><use href="#i-copy"/></svg><span>Copy table</span></button>
+            <button class="btn btn--glass btn--sm" id="export-csv"><svg><use href="#i-download"/></svg><span>CSV</span></button>
+            <button class="btn btn--glass btn--sm btn--danger" id="clear"><svg><use href="#i-trash"/></svg><span>Clear</span></button>
+          </div>
+        </div>
+
+        <p class="hint"><svg><use href="#i-info"/></svg><span>Tag each photo's <strong>true label</strong> — folder or file names like <code>dog/</code> or <code>cat_03.jpg</code> are detected automatically — and the confusion matrix builds itself in <a href="#" data-goto="evaluate">Evaluate</a>.</span></p>
+
+        <div class="grid" id="grid"></div>
+        <div class="table-wrap glass" id="table-wrap" hidden>
+          <table class="data-table" id="table">
+            <thead><tr><th>#</th><th>filename</th><th>prediction</th><th class="num">confidence</th><th class="num">p(cat)</th><th class="num">p(dog)</th><th class="num">p(neither)</th><th>true label</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== EVALUATE ============================== -->
+    <section class="view" id="view-evaluate" role="tabpanel" aria-label="Evaluate">
+      <div class="section-head">
+        <span class="kicker"><span class="kicker__dot"></span>Assessment view</span>
+        <h2>Confusion matrix</h2>
+        <p>Rows are what each photo <em>really</em> was; columns are what the system said. The diagonal is where it was right.</p>
+      </div>
+      <div class="empty glass" id="eval-empty">
+        <div class="empty__orb"><svg><use href="#i-target"/></svg></div>
+        <h3>Nothing to evaluate yet</h3>
+        <p>Classify some photos and set their true labels. Name your folders <code>cat/</code>, <code>dog/</code>, <code>neither/</code> and it happens automatically.</p>
+        <button class="btn btn--primary" data-goto="classify"><svg><use href="#i-spark"/></svg>Go to Classify</button>
+      </div>
+      <div class="eval" id="eval" hidden>
+        <div class="panel glass eval__matrix">
+          <div class="matrix" id="matrix" role="table" aria-label="Confusion matrix"></div>
+          <div class="footnote" id="matrix-note"></div>
+        </div>
+        <div class="eval__side">
+          <div class="panel glass gauge-panel">
+            <div class="gauge" id="acc-gauge"></div>
+            <div class="gauge-panel__text">
+              <span class="label">Accuracy</span>
+              <span class="gauge-panel__sub" id="acc-sub"></span>
+            </div>
+          </div>
+          <div class="panel glass">
+            <h3 class="panel__title">Per class <span class="muted">— as you'd compute it at the board</span></h3>
+            <div class="metrics" id="per-class"></div>
+            <p class="footnote"><strong>Recall</strong> — of the real dogs, how many did it find? &nbsp;<strong>Precision</strong> — of everything it called a dog, how much really was?</p>
+          </div>
+        </div>
+        <div class="panel glass eval__mistakes">
+          <h3 class="panel__title">Mistakes to explain <span class="muted" id="mistake-count"></span></h3>
+          <div class="mistakes" id="mistakes"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== MODEL CARD ============================== -->
+    <section class="view" id="view-model" role="tabpanel" aria-label="Model card">
+      <div class="section-head">
+        <span class="kicker"><span class="kicker__dot"></span>Transparency</span>
+        <h2>Model card</h2>
+        <p>What was trained, on what, how “neither” is decided — and the evidence behind that decision.</p>
+      </div>
+      <div id="model-card"><div class="empty glass"><div class="empty__orb"><svg><use href="#i-chip"/></svg></div><h3>No model loaded</h3><p>Model details appear here once <code>artifacts/model.keras</code> is available.</p></div></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Tech4Youth AI Engineering · Capstone</span>
+    <span id="footer-version"></span>
+  </footer>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="/assets/app.js"></script>
+</body>
+</html>

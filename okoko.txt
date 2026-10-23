@@ -1,0 +1,67 @@
+The whole system is built, but there's no trained model yet. You have to train one on Colab with a GPU before the classifier can be used. All 25 tests pass. I ran the full train → save → reload → predict → evaluate cycle on 120 synthetic images, and drove the web UI in a real browser on desktop, dark mode and phone width.
+
+## What's in `capstone_claude/`
+
+**Approach: A (three classes) plus a safety-net threshold.**
+- The model can actively say "neither" instead of picking the least-bad of cat or dog.
+- If the strongest cat/dog score is still weak, a threshold turns the answer into "neither". That threshold is tuned automatically on validation data.
+- Approach B (cats vs dogs plus a threshold) is built as a real experiment (`python -m catdog train --two-class`). Its results become the evidence the brief asks for.
+
+**How it's organised:**
+
+| Layer | Where | What it does |
+|---|---|---|
+| Data | [catdog/data/](catdog/data/) | Mixes Oxford Pets, Caltech-101, Imagenette and your own photos. Each Caltech/Imagenette exclusion has a written reason, and a misspelled class name stops the run. |
+| Model | [catdog/modeling/](catdog/modeling/) | Pretrained EfficientNetV2-B0. Training adds dim-lighting variations to mimic indoor phone photos. Training runs in two stages. |
+| Inference | [catdog/inference/](catdog/inference/) | One image loader for any photo: 4000×3000, portrait, PNG transparency, HEIC, broken files (shown as an `error` row instead of crashing). |
+| Metrics | [catdog/evaluation/](catdog/evaluation/) | One confusion-matrix module used by the CLI, the notebook and the web app, so their numbers always agree. |
+| API | [catdog/server/](catdog/server/) | FastAPI service. It still starts without a model and explains what's missing. |
+| UI | [web/](web/) | Three tabs, with light and dark themes and phone layout. **Classify:** drop a whole folder, see the three piles, grid or table view, CSV export, "copy table" in the brief's format. **Evaluate:** live confusion matrix with board-style fractions like `4/6`, and a list of mistakes to explain. **Model card:** data per source, the threshold chart, the Approach B evidence, and the exclusions. |
+
+**Also included:**
+- **Notebook:** [notebooks/capstone.ipynb](notebooks/capstone.ipynb) has a `TRAIN = False` switch, so *Restart and run all* never retrains. The assessment cell is section 6: change `FOLDER` and run.
+- **Docs:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) covers the system design. [README.md](README.md) is written for the class repository.
+
+I fixed several bugs found in testing:
+- The validation split was the wrong size for small photo sets.
+- Tall photos stretched the result cards.
+- The page scrolled sideways on phones.
+- The Model card printed a fixed "confident and wrong" verdict about Approach B regardless of the measured numbers. It now follows the data.
+
+## What you need to do
+1. **Train in Colab.** Push the folder to your class repo, set `REPO_URL` in the notebook's first cell, choose a GPU runtime, set `TRAIN = True`, and run all. The first run downloads about 1.1 GB.
+2. **Add your own photos.** Put 30–40 non-pet photos of your surroundings in `data/own/neither/` before training. Put at least 20 photos the model never sees in `data/holdout/{cat,dog,neither}/`.
+3. **Bring back the results.** Copy `model.keras`, `model_meta.json` and `reports/` into `artifacts/`. Then run `make serve` for the web app, or `python -m catdog evaluate` for the confusion matrix you bring on the day.
+4. **Fill in your numbers.** Put your measured Approach B result and your hold-out matrix in the README placeholders.
+
+
+
+
+
+
+
+
+
+HOW TO RUN IT
+
+Other ways to run it
+Run these from a terminal inside the capstone_claude folder:
+
+
+# The prediction table from the brief
+.venv/bin/python -m catdog --model-dir artifacts/demo predict data/demo_samples --recursive
+
+# Confusion matrix in the terminal
+.venv/bin/python -m catdog --model-dir artifacts/demo evaluate data/demo_samples
+
+# Tests
+.venv/bin/python -m pytest
+To start the web app yourself later:
+
+
+cd ~/capstone_claude
+.venv/bin/python -m catdog --model-dir artifacts/demo serve
+Press Ctrl+C in that terminal to stop it.
+
+Once you've trained the real model on Colab and copied model.keras and model_meta.json into artifacts/, run make serve (no --model-dir needed) to use the real model. The demo model and sample photos are excluded from git, so they won't end up in your class repository.
+

@@ -1,0 +1,7 @@
+-r requirements.txt
+# Training and experiments
+tensorflow-datasets>=4.9
+matplotlib>=3.8
+# Tests
+pytest>=8.0
+httpx>=0.27

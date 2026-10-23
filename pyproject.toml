@@ -1,0 +1,20 @@
+[project]
+name = "catdog"
+version = "1.0.0"
+description = "Cat, Dog, or Neither — open-set image classifier with a web interface"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.scripts]
+catdog = "catdog.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["catdog*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 130
