@@ -1,0 +1,13 @@
+i mostly use git bash terminal also can you explain what each directory and it file are doing and what it is purpose to the project
+
+
+i am confused about this .\.venv\Scripts\Activate.ps1 i know this activate the environment but why is it using ps1 in the Activate.ps1
+
+
+also why does it have two requirements because i can see requirements-dev.txt and also requirements.txt
+
+
+what does pyproject.toml means and does
+
+
+what does makefile means and does

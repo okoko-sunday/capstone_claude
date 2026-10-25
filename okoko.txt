@@ -1,5 +1,10 @@
 The whole system is built, but there's no trained model yet. You have to train one on Colab with a GPU before the classifier can be used. All 25 tests pass. I ran the full train → save → reload → predict → evaluate cycle on 120 synthetic images, and drove the web UI in a real browser on desktop, dark mode and phone width.
 
+
+This is a Python/TensorFlow image classifier (cat, dog or neither) with a web interface. Two things on your machine will stop it from running right now:
+
+Python isn't installed. The python command only points to the Microsoft Store placeholder.
+There's no trained model yet. artifacts/ is empty except for .gitkeep, so predict, evaluate and the Classify page need training done first.
 ## What's in `capstone_claude/`
 
 **Approach: A (three classes) plus a safety-net threshold.**
@@ -65,3 +70,190 @@ Press Ctrl+C in that terminal to stop it.
 
 Once you've trained the real model on Colab and copied model.keras and model_meta.json into artifacts/, run make serve (no --model-dir needed) to use the real model. The demo model and sample photos are excluded from git, so they won't end up in your class repository.
 
+
+
+
+
+
+
+
+Your questions are answered in order below, with Git Bash commands throughout.
+
+---
+
+## 1. Running the project from Git Bash
+
+You still need Python 3.12 installed first (tick **"Add python.exe to PATH"**). TensorFlow doesn't support 3.13 yet. Then:
+
+```bash
+cd "/c/Users/Micheal Bekomson/capstone_claude"
+
+python -m venv .venv                         # create the environment (once)
+source .venv/Scripts/activate                # activate it (every new terminal)
+pip install -r requirements-dev.txt          # install packages (once)
+
+python -m pytest                             # run the tests
+python -m catdog serve                       # web page at http://127.0.0.1:8000
+python -m catdog predict path/to/folder      # print the results table
+python -m catdog evaluate data/holdout       # confusion matrix
+```
+
+When the environment is active, `(.venv)` appears at the start of your prompt. Type `deactivate` to leave it.
+
+`predict`, `evaluate` and the Classify page also need a trained model in `artifacts/`. You get that by training in the Colab notebook first.
+
+---
+
+## 2. Why `Activate.ps1`?
+
+`.ps1` is the file extension for **PowerShell scripts**. When Python creates a virtual environment on Windows, it puts several activate scripts in `.venv/Scripts/`, one for each kind of terminal:
+
+| File | Terminal |
+|---|---|
+| `Activate.ps1` | PowerShell |
+| `activate.bat` | Command Prompt (cmd) |
+| `activate` (no extension) | **Git Bash** / bash ← the one you use |
+
+I gave you the PowerShell one because your VS Code terminal was set to PowerShell. In Git Bash, use:
+
+```bash
+source .venv/Scripts/activate
+```
+
+On Mac or Linux the folder is called `.venv/bin/` instead of `.venv/Scripts/`. That difference matters for the Makefile (section 5).
+
+**What "activate" does:** it puts `.venv/Scripts/` at the front of your PATH. After that, `python` and `pip` refer to the project's private copy, so packages install into this project only and not your whole computer.
+
+---
+
+## 3. Why two requirements files?
+
+They list the Python packages the project needs, split by who needs them:
+
+- **[requirements.txt](requirements.txt): runtime.** This is what you need to *use* the model: TensorFlow, NumPy, Pillow (opens images) and FastAPI/uvicorn (the web server). The [Dockerfile](Dockerfile) installs only this file, which keeps the deployed version small.
+- **[requirements-dev.txt](requirements-dev.txt): development.** This is what you need to *build and test* the model. Its first line is `-r requirements.txt`, which means "include everything in the other file too". It then adds:
+  - `tensorflow-datasets` to download Oxford Pets and Caltech
+  - `matplotlib` for charts
+  - `pytest` and `httpx` for tests
+
+So on your own machine, install `requirements-dev.txt` and you get everything.
+
+---
+
+## 4. What `pyproject.toml` does
+
+It is the standard **project settings file** for a Python project. `.toml` is a simple config format. [pyproject.toml](pyproject.toml) does four things:
+
+- **`[project]`** gives the package's name (`catdog`), version, description, and minimum Python version (3.10).
+- **`[project.scripts]`** means that if you install the project with `pip install -e .`, you get a command called `catdog`. You can then type `catdog predict folder` instead of `python -m catdog predict folder`.
+- **`[tool.pytest.ini_options]`** tells pytest to look for tests in `tests/` and to print short output.
+- **`[tool.ruff]`** is a setting for the ruff code-style checker (maximum line length).
+
+You don't run this file. Tools like pip and pytest read it automatically.
+
+---
+
+## 5. What the `Makefile` does
+
+A Makefile is a **list of shortcuts**. `make` is a program that reads it. Instead of typing a long command, you type `make test` and it runs `.venv/bin/python -m pytest` for you.
+
+| Shortcut | Runs |
+|---|---|
+| `make install` | creates `.venv` and installs `requirements-dev.txt` |
+| `make test` | runs the tests |
+| `make serve` | starts the web page |
+| `make predict FOLDER=...` | prints the table for a folder |
+| `make evaluate` | confusion matrix on `data/holdout` |
+| `make smoke` | tiny 50-image training run to check the pipeline works |
+| `make train` / `make train-b` | full training for Approach A / Approach B |
+
+**On your machine it won't work as-is**, for two reasons:
+- Git Bash doesn't come with `make`.
+- The file uses `.venv/bin/python` (the Mac/Linux path) and `python3`. On Windows those are `.venv/Scripts/python` and `python`.
+
+Either run the commands directly as in section 1, or install make with `winget install ezwinports.make` and override the path each time: `make test PY=.venv/Scripts/python`.
+
+---
+
+## 6. Every folder and file, and why it exists
+
+### Top level
+| File | Purpose |
+|---|---|
+| [README.md](README.md) | The short README the brief requires: how to run it, the decisions made and the known limits. Fill in your own numbers where it says `__`. |
+| [.gitignore](.gitignore) | Tells git what *not* to save: `.venv`, downloaded datasets, your personal photos, and temporary smoke-test models. |
+| [Dockerfile](Dockerfile) | A recipe to package the app and model into a container for real deployment. It answers the brief's question "what would you need to deploy this for real?" Optional for the capstone. |
+| [okoko.txt](okoko.txt) / [question.txt](question.txt) | Your own notes, not part of the project. |
+
+### [catdog/](catdog/): the main Python code (the "package")
+| File | Purpose |
+|---|---|
+| [\_\_init\_\_.py](catdog/__init__.py) | Marks the folder as a Python package and describes its layout. |
+| [\_\_main\_\_.py](catdog/__main__.py) | Makes `python -m catdog ...` work by handing control to `cli.py`. |
+| [cli.py](catdog/cli.py) | The command line: `predict`, `evaluate`, `train`, `serve`, `info`. |
+| [config.py](catdog/config.py) | One place for settings (labels `cat/dog/neither`, image size, folder paths), so training and prediction always agree. |
+| [preprocessing.py](catdog/preprocessing.py) | The single resize function. It **letterboxes**: shrinks the image and pads it to a square instead of stretching or cropping it. Training and prediction both use it, so any photo shape is handled the same way. |
+
+**[catdog/data/](catdog/data/): where training images come from**
+- [sources.py](catdog/data/sources.py) loads Oxford Pets (cat/dog), Caltech-101 and Imagenette (neither), and your photos in `data/own/`.
+- [exclusions.py](catdog/data/exclusions.py) lists the Caltech/Imagenette classes removed from "neither" and **why**, for example `dalmatian` because it's a dog. The brief says "this is not busywork; it is the job."
+- [pipeline.py](catdog/data/pipeline.py) mixes the sources, balances the three classes and splits them into training and validation sets.
+
+**[catdog/modeling/](catdog/modeling/): the model itself**
+- [model.py](catdog/modeling/model.py) defines EfficientNetV2-B0, pretrained on ImageNet (transfer learning), with a small 3-way output layer on top.
+- [train.py](catdog/modeling/train.py) trains the model, measures it, tunes the "neither" threshold, then saves `model.keras`, `model_meta.json` and reports. With `--two-class` it runs the Approach B experiment instead.
+
+**[catdog/inference/](catdog/inference/): using the trained model**
+- [image_io.py](catdog/inference/image_io.py) opens *any* image: huge phone photos, rotated portraits, PNG, HEIC and so on. This covers the brief's "it handles any image" requirement.
+- [predictor.py](catdog/inference/predictor.py) turns images into (label, confidence) rows. The CLI, the notebook and the web page all use this one file.
+
+**[catdog/evaluation/](catdog/evaluation/): measuring it**
+- [metrics.py](catdog/evaluation/metrics.py) builds the confusion matrix and computes accuracy, precision and recall, exactly what you'll calculate at the board.
+- [threshold.py](catdog/evaluation/threshold.py) gives the evidence for your "neither" choice: it sweeps thresholds to show how well (or badly) Approach B works.
+
+**[catdog/server/](catdog/server/): the web backend**
+- [app.py](catdog/server/app.py) is the FastAPI server. It serves the web page plus `/api/predict`, `/api/evaluate`, and so on.
+- [schemas.py](catdog/server/schemas.py) defines the shape of the data the API sends and receives.
+
+### [web/](web/): the web page you see in the browser
+- [index.html](web/index.html) is the page structure, with three tabs: Classify, Evaluate and Model card.
+- [assets/styles.css](web/assets/styles.css) is how the page looks, including dark mode.
+- [assets/app.js](web/assets/app.js) is the entry point. It switches tabs and checks whether the server has a model loaded.
+- `assets/js/`:
+  - `api.js` talks to the server.
+  - `store.js` holds page state.
+  - `util.js` has small helpers.
+  - `views/` has one file per tab.
+
+### [notebooks/capstone.ipynb](notebooks/capstone.ipynb)
+The Colab notebook you train in and present from. It covers looking at the data, the Approach B evidence, training Approach A, and the hold-out confusion matrix. It also has the **assessment cell**, where you change one line (`FOLDER = ...`) on the day.
+
+### [scripts/build_notebook.py](scripts/build_notebook.py)
+This script generates the notebook from Python code, which makes changes easy to review. If you edit the notebook by hand in Colab instead, this file just goes out of date.
+
+### [tests/](tests/)
+Automated checks (`python -m pytest`):
+- **test_image_io**: odd images load without crashing.
+- **test_metrics**: confusion-matrix maths is correct.
+- **test_predictor**: predictions come out in the right format.
+- **test_api**: the web endpoints work.
+
+[conftest.py](tests/conftest.py) holds shared setup, such as a tiny fake model, so the tests run without the real one.
+
+### [data/](data/)
+- **`data/own/{cat,dog,neither}/`**: put your own phone photos here. They get **mixed into training**. The brief says 30–40 of your own "neither" photos help more than another thousand downloaded ones.
+- **`data/holdout/{cat,dog,neither}/`**: a **separate** set of your photos the model **never trains on**. You run `evaluate` on these to get the confusion matrix you bring on the day.
+- The `.gitkeep` files are empty placeholders, because git doesn't save empty folders.
+
+### [artifacts/](artifacts/)
+Empty for now. After training, it will hold:
+- `model.keras`: the saved model, a hard requirement in the brief.
+- `model_meta.json`: labels, threshold and image size.
+- `reports/`: Approach B results and the hold-out matrix.
+
+### [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+A longer explanation of how the pieces fit together and why. It's useful for the "you understand it" 25% of the marks.
+
+---
+
+**How it fits together:** photos go into `data/`. `catdog/data` mixes them with the downloaded datasets, `catdog/modeling` trains and saves the model to `artifacts/`, and `catdog/inference` loads it and labels new photos. You see the results through the CLI, the notebook or the `web/` page, and `catdog/evaluation` turns them into the confusion matrix.
