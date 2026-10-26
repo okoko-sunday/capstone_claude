@@ -7,6 +7,7 @@ const listeners = new Map();
 export const state = {
   items: [],
   filter: "all",
+  search: "", // filename filter from the top search box
   layout: "grid",
   view: "classify",
   health: null,

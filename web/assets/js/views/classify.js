@@ -45,6 +45,7 @@ export function initClassify() {
   on("item", renderItem);
   on("filter", renderAll);
   on("layout", renderAll);
+  on("search", renderAll);
 }
 
 // ----------------------------------------------------------------- upload
@@ -93,7 +94,9 @@ function progress(done, total, text) {
 // --------------------------------------------------------------- rendering
 function visible() {
   const f = state.filter;
+  const q = state.search;
   return state.items.filter((it) => {
+    if (q && !it.name.toLowerCase().includes(q)) return false;
     if (f === "all") return true;
     if (!it.prediction) return false;
     if (f === "unsure") return isUnsure(it);
@@ -109,13 +112,14 @@ function renderAll() {
   $$(".seg").forEach((b) => b.classList.toggle("is-active", b.dataset.layout === state.layout));
   renderPiles();
   renderChipCounts();
+  renderRecent();
   const items = visible();
   const grid = $("#grid");
   grid.hidden = state.layout !== "grid";
   $("#table-wrap").hidden = state.layout !== "table";
   if (state.layout === "grid") {
     grid.replaceChildren(...items.map(card));
-    if (!items.length && hasItems) grid.innerHTML = `<p class="muted">No images match this filter.</p>`;
+    if (!items.length && hasItems) grid.innerHTML = `<p class="muted">No images match ${state.search ? `“${esc(state.search)}”` : "this filter"}.</p>`;
   } else {
     $("#table tbody").replaceChildren(...items.map(row));
   }
@@ -126,6 +130,29 @@ function renderItem(item) {
   if (old) old.replaceWith(state.layout === "grid" ? card(item) : row(item));
   renderPiles();
   renderChipCounts();
+  renderRecent();
+}
+
+// Newest first; clicking a thumbnail scrolls to its full result card.
+function renderRecent() {
+  const recent = [...state.items].reverse().slice(0, 12);
+  $("#recent-empty").hidden = recent.length > 0;
+  $("#recent").replaceChildren(...recent.map((it) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "thumb";
+    const label = it.prediction?.label;
+    b.innerHTML = `
+      <div class="thumb__media"><img src="${it.url}" alt="" loading="lazy" /><span class="thumb__more" aria-hidden="true">···</span></div>
+      <div class="thumb__foot"><i class="dot ${label && label !== "error" ? `dot--${label}` : ""}" style="${!label || label === "error" ? "background:var(--muted)" : ""}"></i><span title="${esc(it.name)}">${esc(it.name.split("/").pop())}</span></div>`;
+    b.setAttribute("aria-label", `${it.name}: ${label ?? "classifying"}`);
+    b.querySelector("img").addEventListener("error", (e) => e.target.remove());
+    b.addEventListener("click", () => {
+      if (state.filter !== "all" || state.search) { $("#search").value = ""; set({ filter: "all", search: "" }, "filter"); }
+      requestAnimationFrame(() => document.querySelector(`[data-id="${it.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    });
+    return b;
+  }));
 }
 
 function renderPiles() {

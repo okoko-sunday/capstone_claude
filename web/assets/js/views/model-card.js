@@ -54,7 +54,7 @@ function render() {
       ${b ? approachB(b) : `<p class="muted">Approach B evidence (two-class + threshold) appears here after running <code>python -m catdog train --two-class</code>.</p>`}
     </div>
 
-    <div class="card span-6">
+    <div class="card span-6" id="datasets">
       <h3 class="card__title">Training data by source</h3>
       ${sourceBars(m.train_counts ?? {})}
       <div class="counts-legend">${LABELS.map((l) => `<span><i style="background:var(--${l})"></i>${l}: <strong>${totals[l] ?? 0}</strong> train · ${valTotals[l] ?? 0} val</span>`).join("")}</div>
