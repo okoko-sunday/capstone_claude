@@ -8,8 +8,9 @@
   <meta name="theme-color" content="#eef2f8" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="preload" href="/assets/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/assets/styles.css?v=4" />
+  <link rel="stylesheet" href="/assets/styles.css?v=5" />
   <script>
+    document.documentElement.classList.add("js");
     try { const t = localStorage.getItem("catdog-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
   </script>
 </head>
@@ -116,32 +117,38 @@
 
         <!-- ============================== CLASSIFY ============================== -->
         <section class="view is-active" id="view-classify" role="tabpanel" aria-label="Image classifier">
-          <div class="hero">
+          <div class="hero" id="hero">
+            <canvas class="hero__particles" id="particles" aria-hidden="true"></canvas>
+            <span class="hero__aurora" aria-hidden="true"></span>
             <div class="hero__copy">
-              <span class="eyebrow"><span class="eyebrow__icon"><svg><use href="#i-arrow"/></svg></span>YOUR VISION WORKSPACE</span>
-              <h1>See every image<br />with new <span class="grad">clarity.</span></h1>
-              <p>Classify with precision. Inspect the details.<br />Understand the result.</p>
+              <span class="eyebrow intro" style="--d:.05s"><span class="eyebrow__icon"><svg><use href="#i-arrow"/></svg></span>YOUR VISION WORKSPACE</span>
+              <h1 aria-label="See every image with new clarity.">
+                <span class="line" aria-hidden="true"><span style="--d:.15s">See every image</span></span>
+                <span class="line" aria-hidden="true"><span style="--d:.3s">with new <span class="grad grad--shimmer">clarity.</span></span></span>
+              </h1>
+              <p class="intro" style="--d:.5s">Classify with precision. Inspect the details.<br />Understand the result.</p>
+              <span class="scan-status intro" style="--d:.7s" aria-hidden="true"><i></i><span id="scan-text">Model warming up…</span></span>
             </div>
             <div class="collage" aria-label="Example photographs of the three categories">
               <span class="collage__glow"></span>
               <span class="collage__rays" aria-hidden="true"><i></i><i></i><i></i></span>
-              <figure class="shot shot--dog" tabindex="0"><img src="/assets/images/dog.jpg" alt="Golden retriever sitting outdoors" /></figure>
-              <figure class="shot shot--cat" tabindex="0"><img src="/assets/images/cat.jpg" alt="Black and white cat looking at the camera" /></figure>
-              <figure class="shot shot--neither" tabindex="0"><img src="/assets/images/neither.jpg" alt="Desert road through red rocks, with no cat or dog" /></figure>
-              <span class="tag tag--dog"><i class="dot dot--dog"></i>Dog</span>
-              <span class="tag tag--cat"><i class="dot dot--cat"></i>Cat</span>
-              <span class="tag tag--neither"><i class="dot dot--neither"></i>Neither</span>
+              <figure class="shot shot--dog" tabindex="0" data-label="dog"><img src="/assets/images/dog.jpg" alt="Golden retriever sitting outdoors" /><span class="scan" aria-hidden="true"><i class="scan__beam"></i><i class="scan__box"></i></span></figure>
+              <figure class="shot shot--cat" tabindex="0" data-label="cat"><img src="/assets/images/cat.jpg" alt="Black and white cat looking at the camera" /><span class="scan" aria-hidden="true"><i class="scan__beam"></i><i class="scan__box"></i></span></figure>
+              <figure class="shot shot--neither" tabindex="0" data-label="neither"><img src="/assets/images/neither.jpg" alt="Desert road through red rocks, with no cat or dog" /><span class="scan" aria-hidden="true"><i class="scan__beam"></i><i class="scan__box"></i></span></figure>
+              <span class="tag tag--dog" data-for="dog"><i class="dot dot--dog"></i>Dog</span>
+              <span class="tag tag--cat" data-for="cat"><i class="dot dot--cat"></i>Cat</span>
+              <span class="tag tag--neither" data-for="neither"><i class="dot dot--neither"></i>Neither</span>
             </div>
           </div>
 
-          <div class="features">
+          <div class="features" data-reveal>
             <div class="feature feature--blue"><span class="feature__icon"><svg><use href="#i-layers"/></svg></span><strong>Three distinct classes</strong><span>Dog, cat &amp; everything else</span></div>
             <div class="feature feature--purple"><span class="feature__icon"><svg><use href="#i-image"/></svg></span><strong>One image or a folder</strong><span>Any size, shape or format</span></div>
             <div class="feature feature--orange"><span class="feature__icon"><svg><use href="#i-chart"/></svg></span><strong>Evidence you can inspect</strong><span>Scores, labels &amp; a confusion matrix</span></div>
           </div>
 
           <!-- Drop zone: a soft light travels around the border; rings pulse from the icon. -->
-          <div class="drop" id="dropzone" tabindex="0" role="button" aria-label="Drop photos or a folder, or press Enter to choose photos">
+          <div class="drop" data-reveal id="dropzone" tabindex="0" role="button" aria-label="Drop photos or a folder, or press Enter to choose photos">
             <div class="drop__inner">
               <input type="file" id="file-input" accept="image/*,.heic,.heif" multiple hidden />
               <input type="file" id="folder-input" webkitdirectory directory multiple hidden />
@@ -161,7 +168,7 @@
             </div>
           </div>
 
-          <section class="recent" aria-labelledby="recent-title">
+          <section class="recent" data-reveal aria-labelledby="recent-title">
             <div class="row-head">
               <h2 id="recent-title">Recent images</h2>
               <a class="link" href="#results-area" id="view-all">View all <svg><use href="#i-arrow"/></svg></a>
@@ -326,6 +333,6 @@
   <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script type="module" src="/assets/app.js?v=4"></script>
+  <script type="module" src="/assets/app.js?v=5"></script>
 </body>
 </html>

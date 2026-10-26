@@ -6,6 +6,7 @@ import { $, $$, toast } from "./js/util.js";
 import { initClassify } from "./js/views/classify.js";
 import { initEvaluate } from "./js/views/evaluate.js";
 import { initModelCard } from "./js/views/model-card.js";
+import { initMotion } from "./js/motion.js";
 
 function show(view, scroll) {
   $$(".tab").forEach((t) => {
@@ -132,6 +133,7 @@ initSearch();
 initClassify();
 initEvaluate();
 initModelCard();
+initMotion();
 refreshStatus();
 
 window.__catdog = { state }; // handy for debugging in the console
