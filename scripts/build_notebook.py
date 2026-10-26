@@ -65,7 +65,7 @@ if not IN_COLAB:
 os.chdir(PROJECT)
 sys.path.insert(0, PROJECT)
 if IN_COLAB:
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "tensorflow-datasets", "pillow-heif"], check=True)
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "tensorflow-datasets", "importlib_resources", "pillow-heif"], check=True)
 
 import tensorflow as tf
 print("TensorFlow", tf.__version__, "| GPU:", tf.config.list_physical_devices("GPU") or "none")
