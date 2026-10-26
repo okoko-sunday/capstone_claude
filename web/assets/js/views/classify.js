@@ -5,29 +5,39 @@ import { LABELS, emit, isUnsure, isWrong, on, set, state } from "../store.js";
 import { $, $$, IMAGE_EXT, download, esc, filesFromDrop, guessTruth, icon, pct, toast, tooltip } from "../util.js";
 
 const CHUNK = 12; // images per request: keeps progress smooth and requests small
+const MAX_TILES = 12; // previews shown in the drop zone; the rest are summarised as "+N"
 let nextId = 1;
+let staged = []; // chosen but not yet classified: same shape as state.items entries
+let skippedFiles = 0;
+let busy = false;
 
 export function initClassify() {
   const zone = $("#dropzone");
   const fileInput = $("#file-input");
   const folderInput = $("#folder-input");
 
-  $("#pick-files").addEventListener("click", (e) => { e.stopPropagation(); fileInput.click(); });
-  $("#pick-folder").addEventListener("click", (e) => { e.stopPropagation(); folderInput.click(); });
-  zone.addEventListener("click", () => fileInput.click());
-  zone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+  $("#pick-files").addEventListener("click", (e) => { e.stopPropagation(); if (!busy) fileInput.click(); });
+  $("#pick-folder").addEventListener("click", (e) => { e.stopPropagation(); if (!busy) folderInput.click(); });
+  zone.addEventListener("click", () => { if (!busy && !staged.length) fileInput.click(); });
+  zone.addEventListener("keydown", (e) => {
+    // Only the zone itself; Enter on a button inside it must press that button.
+    if (e.target === zone && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); if (!busy) fileInput.click(); }
+  });
+  $("#staged").addEventListener("click", (e) => e.stopPropagation());
+  $("#staged-clear").addEventListener("click", clearStaged);
+  $("#classify-btn").addEventListener("click", classifyStaged);
 
   const fromInput = (input) => () => {
     const files = [...input.files].map((file) => ({ file, name: file.webkitRelativePath || file.name }));
     input.value = "";
-    addFiles(files);
+    stage(files);
   };
   fileInput.addEventListener("change", fromInput(fileInput));
   folderInput.addEventListener("change", fromInput(folderInput));
 
   ["dragenter", "dragover"].forEach((t) => zone.addEventListener(t, (e) => { e.preventDefault(); zone.classList.add("is-over"); }));
   ["dragleave", "drop"].forEach((t) => zone.addEventListener(t, () => zone.classList.remove("is-over")));
-  zone.addEventListener("drop", async (e) => { e.preventDefault(); addFiles(await filesFromDrop(e.dataTransfer)); });
+  zone.addEventListener("drop", async (e) => { e.preventDefault(); if (!busy) stage(await filesFromDrop(e.dataTransfer)); });
   // Dropping anywhere on the page should not navigate away from the app.
   window.addEventListener("dragover", (e) => e.preventDefault());
   window.addEventListener("drop", (e) => e.preventDefault());
@@ -49,40 +59,125 @@ export function initClassify() {
 }
 
 // ----------------------------------------------------------------- upload
-async function addFiles(files) {
+// Choosing or dropping photos only stages them in the drop zone; "Classify" sends them.
+function stage(files) {
   const images = files.filter((f) => IMAGE_EXT.test(f.name));
   const skipped = files.length - images.length;
   if (!images.length) return toast(skipped ? `No images found (${skipped} non-image files skipped)` : "No files selected");
+  skippedFiles += skipped;
+  staged.push(...images.map(({ file, name }) => ({
+    id: nextId++, name, file, url: URL.createObjectURL(file), prediction: null, truth: guessTruth(name),
+  })));
+  $("#progress-text").textContent = "";
+  renderStaged();
+}
+
+function clearStaged() {
+  if (busy) return;
+  staged.forEach((it) => URL.revokeObjectURL(it.url));
+  staged = [];
+  skippedFiles = 0;
+  renderStaged();
+}
+
+function renderStaged() {
+  const zone = $("#dropzone");
+  const n = staged.length;
+  zone.classList.toggle("has-staged", n > 0);
+  $("#staged").hidden = n === 0;
+  if (!n) return;
+
+  // A folder upload gives names like "holiday/beach.jpg"; name the folder(s) instead of counting files.
+  const folders = [...new Set(staged.filter((it) => it.name.includes("/")).map((it) => it.name.split("/")[0]))];
+  const images = `${n} image${n === 1 ? "" : "s"}`;
+  $("#staged-icon use").setAttribute("href", folders.length ? "#i-folder" : "#i-image");
+  $("#staged-title").textContent = folders.length === 1 ? folders[0] : n === 1 ? staged[0].name : folders.length ? `${folders.length} folders` : images;
+  $("#staged-sub").textContent = `${n === 1 && !folders.length ? "Ready to classify" : `${images} ready to classify`}${skippedFiles ? ` · ${skippedFiles} non-image files skipped` : ""}`;
+  $("#classify-label").textContent = `Classify ${images}`;
+
+  const grid = $("#staged-grid");
+  grid.classList.toggle("is-single", n === 1);
+  const tiles = staged.slice(0, MAX_TILES).map((it, i) => {
+    const tile = document.createElement("figure");
+    tile.className = "staged__tile";
+    tile.dataset.id = it.id;
+    tile.style.setProperty("--i", i);
+    tile.innerHTML = `
+      <img src="${it.url}" alt="${esc(it.name)}" />
+      <span class="staged__scan" aria-hidden="true"><i class="staged__beam"></i><i class="staged__box"></i></span>
+      <span class="staged__done" aria-hidden="true">${icon("check")}</span>`;
+    tile.querySelector("img").addEventListener("error", (e) => e.target.replaceWith(Object.assign(document.createElement("div"), { className: "fallback", innerHTML: `${icon("image")}No preview` })));
+    return tile;
+  });
+  if (n > MAX_TILES) {
+    const more = document.createElement("div");
+    more.className = "staged__tile staged__more";
+    more.textContent = `+${n - MAX_TILES}`;
+    tiles.push(more);
+  }
+  grid.replaceChildren(...tiles);
+}
+
+// Mark previews as being read (the chunk in flight) or done (with their predicted label).
+function markTiles(items, mode) {
+  for (const it of items) {
+    const tile = document.querySelector(`.staged__tile[data-id="${it.id}"]`);
+    if (!tile) continue;
+    tile.classList.toggle("is-reading", mode === "reading");
+    tile.classList.toggle("is-done", mode === "done");
+    if (mode === "done" && it.prediction) tile.dataset.label = it.prediction.label;
+  }
+}
+
+async function classifyStaged() {
+  if (busy || !staged.length) return;
   if (state.health && !state.health.model_loaded) return toast("No model loaded — see the banner above");
 
-  const fresh = images.map(({ file, name }) => ({
-    id: nextId++, name, file, url: URL.createObjectURL(file), prediction: null, truth: guessTruth(name),
-  }));
+  const fresh = staged;
+  const skipped = skippedFiles;
   set({ items: [...state.items, ...fresh] }, "items");
 
   const zone = $("#dropzone");
+  busy = true;
   zone.classList.add("is-busy");
+  $("#classify-btn").disabled = $("#staged-clear").disabled = true;
+  $("#classify-label").textContent = "Reading images…";
   $("#progress").hidden = false;
   const started = performance.now();
   let done = 0;
+  let ok = false;
   try {
     for (let i = 0; i < fresh.length; i += CHUNK) {
       const chunk = fresh.slice(i, i + CHUNK);
       progress(done, fresh.length);
+      markTiles(chunk, "reading");
       const res = await api.predict(chunk.map((it) => ({ name: it.name, file: it.file })));
       res.predictions.forEach((p, k) => (chunk[k].prediction = p));
+      markTiles(chunk, "done");
       done += chunk.length;
       emit("items");
     }
     const secs = ((performance.now() - started) / 1000).toFixed(1);
     progress(done, fresh.length, `Classified ${done} image${done === 1 ? "" : "s"} in ${secs}s${skipped ? ` · ${skipped} non-image files skipped` : ""}`);
+    $("#classify-label").textContent = "Done";
+    ok = true;
   } catch (err) {
     progress(done, fresh.length, `Error: ${err.message}`);
     // Drop the items that never got a prediction.
     set({ items: state.items.filter((it) => it.prediction || !fresh.includes(it)) }, "items");
   } finally {
-    zone.classList.remove("is-busy");
-    setTimeout(() => ($("#progress").hidden = true), 900);
+    // Leave the finished previews (with their ticks) on screen a moment, then reset the zone.
+    setTimeout(() => {
+      busy = false;
+      zone.classList.remove("is-busy");
+      $("#classify-btn").disabled = $("#staged-clear").disabled = false;
+      $("#progress").hidden = true;
+      // Classified photos now belong to the results below; on error the rest stay staged for a retry.
+      staged = ok ? [] : fresh.filter((it) => !it.prediction);
+      if (ok) skippedFiles = 0;
+      renderStaged();
+      if (ok) $("#results-area").scrollIntoView({ behavior: "smooth", block: "start" });
+    }, ok ? 1400 : 2500);
   }
 }
 

@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#eef2f8" />
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="preload" href="/assets/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/assets/styles.css?v=5" />
+  <link rel="stylesheet" href="/assets/styles.css?v=7" />
   <script>
     document.documentElement.classList.add("js");
     try { const t = localStorage.getItem("catdog-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
@@ -159,6 +159,18 @@
               <span class="drop__title">Drop your images here</span>
               <span class="drop__browse">or click to browse</span>
               <span class="drop__hint">Supports JPG, PNG, WebP, HEIC <i>·</i> Single image or entire folder</span>
+              <!-- Chosen photos wait here until "Classify" is pressed; while classifying, each one is scanned. -->
+              <div class="staged" id="staged" hidden>
+                <div class="staged__head">
+                  <span class="staged__icon"><svg id="staged-icon"><use href="#i-image"/></svg></span>
+                  <div class="staged__text"><strong id="staged-title"></strong><span id="staged-sub"></span></div>
+                </div>
+                <div class="staged__grid" id="staged-grid"></div>
+                <div class="staged__actions">
+                  <button type="button" class="btn btn--outline" id="staged-clear"><svg><use href="#i-x"/></svg>Remove</button>
+                  <button type="button" class="btn btn--primary" id="classify-btn"><svg><use href="#i-target"/></svg><span id="classify-label">Classify</span> <svg><use href="#i-arrow"/></svg></button>
+                </div>
+              </div>
               <span class="drop__buttons">
                 <button type="button" class="btn btn--primary" id="pick-files"><svg><use href="#i-image"/></svg>Choose images <svg><use href="#i-arrow"/></svg></button>
                 <button type="button" class="btn btn--outline" id="pick-folder"><svg><use href="#i-folder"/></svg>Choose folder</button>
@@ -283,6 +295,29 @@
               </div>
               <div class="mistakes" id="mistakes"></div>
             </article>
+
+            <!-- Every number above, worked out by hand from the matrix: TP/FP/FN/TN per class, then each formula. -->
+            <article class="card eval__working">
+              <div class="card__head">
+                <h3 class="card__title">Show the working <span class="muted">— TP, FP, FN, TN and every formula</span></h3>
+                <span class="select-pill">Each class vs the rest</span>
+              </div>
+              <div class="scroll-x">
+                <table class="data-table data-table--plain outcomes" id="outcomes">
+                  <thead><tr>
+                    <th>class</th>
+                    <th class="num" title="True positive">TP <span class="muted">true positive</span></th>
+                    <th class="num" title="False positive">FP <span class="muted">false positive</span></th>
+                    <th class="num" title="False negative">FN <span class="muted">false negative</span></th>
+                    <th class="num" title="True negative">TN <span class="muted">true negative</span></th>
+                    <th class="num">total</th>
+                  </tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <p class="footnote" id="outcomes-note"></p>
+              <div class="formulas" id="formulas"></div>
+            </article>
           </div>
         </section>
 
@@ -333,6 +368,6 @@
   <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script type="module" src="/assets/app.js?v=5"></script>
+  <script type="module" src="/assets/app.js?v=7"></script>
 </body>
 </html>

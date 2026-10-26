@@ -115,6 +115,93 @@ function render(r) {
   }).join("");
 
   renderMistakes();
+  renderWorking(r);
+}
+
+// ------------------------------------------------------------ show the working
+// One-vs-rest counts for each class, straight from the matrix (rows = true, columns = predicted).
+function outcomes(m) {
+  const total = m.flat().reduce((a, b) => a + b, 0);
+  return LABELS.map((label, i) => {
+    const tp = m[i][i];
+    const fn = m[i].reduce((a, b) => a + b, 0) - tp; // real <label>s called something else
+    const fp = m.reduce((a, row) => a + row[i], 0) - tp; // other photos called <label>
+    return { label, tp, fp, fn, tn: total - tp - fp - fn, total };
+  });
+}
+
+const ratio = (a, b) => (b ? a / b : null);
+const show = (v) => (v == null ? "undefined (÷ 0)" : pct(v));
+const name = (l) => `<span class="cls"><i class="dot dot--${l}"></i>${l}</span>`;
+
+function formulaBox(title, formula, lines, result, note = "") {
+  return `<div class="formula">
+    <div class="formula__title">${title}</div>
+    <div class="formula__eq">${formula}</div>
+    <div class="formula__lines">${lines.join("")}</div>
+    ${result ? `<div class="formula__result">${result}</div>` : ""}
+    ${note ? `<p class="formula__note">${note}</p>` : ""}
+  </div>`;
+}
+
+const line = (label, working, value) =>
+  `<div class="formula__line">${name(label)}<span class="formula__work">${working}</span><strong>${show(value)}</strong></div>`;
+
+function renderWorking(r) {
+  const rows = outcomes(r.matrix);
+  const total = r.total;
+  $("#outcomes tbody").innerHTML = rows.map((o) => `<tr>
+      <td>${name(o.label)}</td>
+      <td class="num out out--good">${o.tp}</td>
+      <td class="num out out--bad">${o.fp}</td>
+      <td class="num out out--bad">${o.fn}</td>
+      <td class="num out out--good">${o.tn}</td>
+      <td class="num muted">${o.total}</td></tr>`).join("");
+
+  const d = rows.find((o) => o.label === "dog");
+  $("#outcomes-note").innerHTML =
+    `With three classes, each row treats one class as “positive” and the other two as “negative”. Reading the <strong>dog</strong> row: ` +
+    `<strong>TP ${d.tp}</strong> real dogs called dog · <strong>FP ${d.fp}</strong> cats or “neither” photos wrongly called dog · ` +
+    `<strong>FN ${d.fn}</strong> real dogs called something else · <strong>TN ${d.tn}</strong> non-dogs correctly not called dog. ` +
+    `TP + FP + FN + TN = ${d.total}, every labelled photo.`;
+
+  // Per-class values, then the macro average (mean over classes that have photos, as the server computes macro-F1).
+  const per = rows.map((o) => {
+    const precision = ratio(o.tp, o.tp + o.fp);
+    const recall = ratio(o.tp, o.tp + o.fn);
+    const f1 = precision != null && recall != null ? ratio(2 * precision * recall, precision + recall) : null;
+    return { ...o, precision, recall, f1 };
+  });
+  const present = per.filter((o) => o.tp + o.fn > 0);
+  const macro = (key) => (present.length ? present.reduce((a, o) => a + (o[key] ?? 0), 0) / present.length : null);
+  const macroLine = (key) => `Macro average (mean of the ${present.length} class${present.length === 1 ? "" : "es"} with photos) = <strong>${show(macro(key))}</strong>`;
+
+  const tps = rows.map((o) => o.tp);
+  const accuracy = formulaBox(
+    "Accuracy",
+    `correct predictions ÷ all predictions = (TP<sub>cat</sub> + TP<sub>dog</sub> + TP<sub>neither</sub>) ÷ total`,
+    [`<div class="formula__line formula__line--wide"><span class="formula__work">(${tps.join(" + ")}) ÷ ${total} = ${r.correct}/${total}</span><strong>${show(ratio(r.correct, total))}</strong></div>`,
+     ...rows.map((o) => line(o.label, `(TP + TN) ÷ total = (${o.tp} + ${o.tn}) ÷ ${total}`, ratio(o.tp + o.tn, total)))],
+    `Overall accuracy = <strong>${show(ratio(r.correct, total))}</strong>, the diagonal of the matrix ÷ ${total}`,
+    `The first line is the accuracy to quote. The (TP + TN) ÷ total lines are each class’s own yes/no accuracy. They come out higher, ` +
+    `because every photo is a “true negative” for the classes it isn’t, so TN is large even when the model makes mistakes.`);
+  const precision = formulaBox(
+    "Precision",
+    `TP ÷ (TP + FP) <span class="muted">— of everything it called this class, how much really was?</span>`,
+    per.map((o) => line(o.label, `${o.tp} ÷ (${o.tp} + ${o.fp}) = ${o.tp}/${o.tp + o.fp}`, o.precision)),
+    macroLine("precision"));
+  const recall = formulaBox(
+    "Recall",
+    `TP ÷ (TP + FN) <span class="muted">— of the real photos of this class, how many did it find?</span>`,
+    per.map((o) => line(o.label, `${o.tp} ÷ (${o.tp} + ${o.fn}) = ${o.tp}/${o.tp + o.fn}`, o.recall)),
+    macroLine("recall"));
+  const f1 = formulaBox(
+    "F1-score",
+    `2 × precision × recall ÷ (precision + recall) <span class="muted">= 2TP ÷ (2TP + FP + FN)</span>`,
+    per.map((o) => line(o.label, `2×${o.tp} ÷ (2×${o.tp} + ${o.fp} + ${o.fn}) = ${2 * o.tp}/${2 * o.tp + o.fp + o.fn}`, o.f1)),
+    macroLine("f1"),
+    "F1 is high only when precision and recall are both high, so one weak side drags it down.");
+  $("#formulas").innerHTML = accuracy + precision + recall + f1;
 }
 
 function sparkline(svg, values, lo, hi) {
