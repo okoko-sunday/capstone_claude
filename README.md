@@ -26,11 +26,16 @@ test_03.jpg     cat              88.0%
 ## Quick start
 
 ### Train (Colab, GPU)
-1. Push this folder to the class repository and set `REPO_URL` in the first notebook cell.
-2. Open `notebooks/capstone.ipynb` in Colab, **Runtime → Change runtime type → GPU**.
-3. Set `TRAIN = True`, run all. Downloads ≈ 1.1 GB (Pets 774 MB, Caltech 131 MB, Imagenette 326 MB) the first time.
-4. Download `artifacts/model.keras`, `artifacts/model_meta.json` and `artifacts/reports/` and commit them.
-5. Set `TRAIN = False` again. From now on *Restart and run all* only loads the model.
+1. In Google Drive, put your photos in `MyDrive/catdog/own/neither/` (30–40+ photos of your surroundings) and
+   `MyDrive/catdog/holdout/{cat,dog,neither}/` (20+ photos the model never trains on). The notebook creates the
+   folders on its first run if they don't exist yet.
+2. Open `notebooks/capstone.ipynb` in Colab (File → Open notebook → GitHub), **Runtime → Change runtime type → T4 GPU**.
+   `REPO_URL` already points at this repository. If the repo is private, add a Colab secret named `GITHUB_TOKEN`.
+3. Set `TRAIN = True`, then **Runtime → Run all**. Allow Google Drive access when asked. Downloads ≈ 1.1 GB the first
+   time; training takes roughly 30–60 minutes.
+4. Section 3b saves the model to `MyDrive/catdog/artifacts/` and downloads `catdog_artifacts.zip`. Unzip it into this
+   project's `artifacts/` folder and commit `model.keras`, `model_meta.json` and `reports/`.
+5. Set `TRAIN = False`. From now on *Restart and run all* only loads the model (from the repo or from Drive).
 
 ### Run locally
 ```bash
