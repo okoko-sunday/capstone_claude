@@ -1,0 +1,481 @@
+{
+  "trained_at": "2026-10-26T09:03:28+00:00",
+  "train_seconds": 410.6,
+  "config": {
+    "image_size": 224,
+    "batch_size": 32,
+    "backbone": "efficientnetv2b0",
+    "head_epochs": 6,
+    "head_lr": 0.001,
+    "finetune_epochs": 4,
+    "finetune_lr": 1e-05,
+    "finetune_layers": 40,
+    "dropout": 0.3,
+    "label_smoothing": 0.05,
+    "val_fraction": 0.15,
+    "seed": 42,
+    "max_per_class": 4000,
+    "limit": null,
+    "sources": [
+      "oxford_iiit_pet",
+      "caltech101",
+      "imagenette",
+      "own"
+    ]
+  },
+  "train_counts": {
+    "oxford_iiit_pet": {
+      "cat": 1993,
+      "dog": 4252
+    },
+    "caltech101": {
+      "neither": 2550
+    },
+    "imagenette": {
+      "neither": 2550
+    },
+    "own": {
+      "neither": 51
+    }
+  },
+  "val_counts": {
+    "oxford_iiit_pet": {
+      "cat": 378,
+      "dog": 726
+    },
+    "caltech101": {
+      "neither": 450
+    },
+    "imagenette": {
+      "neither": 450
+    },
+    "own": {
+      "neither": 9
+    }
+  },
+  "history": {
+    "accuracy": [
+      0.9262021780014038,
+      0.9739382266998291,
+      0.9746402502059937,
+      0.9749034643173218,
+      0.9749912023544312,
+      0.9764829874038696,
+      0.9787644743919373,
+      0.9806950092315674,
+      0.9794664978981018,
+      0.9830642342567444
+    ],
+    "loss": [
+      0.3613188564777374,
+      0.26227623224258423,
+      0.2566508650779724,
+      0.25479695200920105,
+      0.2515280246734619,
+      0.2482859343290329,
+      0.24107740819454193,
+      0.23561014235019684,
+      0.2348843365907669,
+      0.22957447171211243
+    ],
+    "val_accuracy": [
+      0.9915549159049988,
+      0.9940387606620789,
+      0.994535505771637,
+      0.9930452108383179,
+      0.993541955947876,
+      0.9950323104858398,
+      0.9950323104858398,
+      0.9950323104858398,
+      0.995529055595398,
+      0.9965226054191589
+    ],
+    "val_loss": [
+      0.1145424023270607,
+      0.08768035471439362,
+      0.07792771607637405,
+      0.07138221710920334,
+      0.07309991866350174,
+      0.07064282149076462,
+      0.06439276039600372,
+      0.060005128383636475,
+      0.05612208694219589,
+      0.05363203585147858
+    ],
+    "learning_rate": [
+      0.0010000000474974513,
+      0.0010000000474974513,
+      0.0010000000474974513,
+      0.0010000000474974513,
+      0.0010000000474974513,
+      0.0003000000142492354,
+      9.999999747378752e-06,
+      9.999999747378752e-06,
+      9.999999747378752e-06,
+      9.999999747378752e-06
+    ]
+  },
+  "versions": {
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2",
+    "python": "3.13.16"
+  },
+  "labels": [
+    "cat",
+    "dog",
+    "neither"
+  ],
+  "approach": "A-three-class",
+  "backbone": "efficientnetv2b0",
+  "image_size": 224,
+  "policy": {
+    "animal_threshold": 0.34,
+    "tta": true
+  },
+  "validation": {
+    "raw": {
+      "labels": [
+        "cat",
+        "dog",
+        "neither"
+      ],
+      "matrix": [
+        [
+          375,
+          2,
+          1
+        ],
+        [
+          3,
+          723,
+          0
+        ],
+        [
+          1,
+          0,
+          908
+        ]
+      ],
+      "total": 2013,
+      "correct": 2006,
+      "accuracy": 0.9965226030799801,
+      "per_class": [
+        {
+          "label": "cat",
+          "support": 378,
+          "predicted": 379,
+          "precision": 0.9894459102902374,
+          "recall": 0.9920634920634921,
+          "f1": 0.9907529722589168
+        },
+        {
+          "label": "dog",
+          "support": 726,
+          "predicted": 725,
+          "precision": 0.9972413793103448,
+          "recall": 0.9958677685950413,
+          "f1": 0.9965541006202618
+        },
+        {
+          "label": "neither",
+          "support": 909,
+          "predicted": 909,
+          "precision": 0.9988998899889989,
+          "recall": 0.9988998899889989,
+          "f1": 0.9988998899889989
+        }
+      ],
+      "macro_f1": 0.9954023209560591
+    },
+    "tuned": {
+      "labels": [
+        "cat",
+        "dog",
+        "neither"
+      ],
+      "matrix": [
+        [
+          375,
+          2,
+          1
+        ],
+        [
+          3,
+          723,
+          0
+        ],
+        [
+          1,
+          0,
+          908
+        ]
+      ],
+      "total": 2013,
+      "correct": 2006,
+      "accuracy": 0.9965226030799801,
+      "per_class": [
+        {
+          "label": "cat",
+          "support": 378,
+          "predicted": 379,
+          "precision": 0.9894459102902374,
+          "recall": 0.9920634920634921,
+          "f1": 0.9907529722589168
+        },
+        {
+          "label": "dog",
+          "support": 726,
+          "predicted": 725,
+          "precision": 0.9972413793103448,
+          "recall": 0.9958677685950413,
+          "f1": 0.9965541006202618
+        },
+        {
+          "label": "neither",
+          "support": 909,
+          "predicted": 909,
+          "precision": 0.9988998899889989,
+          "recall": 0.9988998899889989,
+          "f1": 0.9988998899889989
+        }
+      ],
+      "macro_f1": 0.9954023209560591
+    },
+    "threshold_sweep": [
+      {
+        "threshold": 0.34,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.36,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.38,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.4,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.42,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.44,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.46,
+        "macro_f1": 0.9954023209560591,
+        "accuracy": 0.9965226030799801
+      },
+      {
+        "threshold": 0.48,
+        "macro_f1": 0.9947742774014255,
+        "accuracy": 0.9960258320914058
+      },
+      {
+        "threshold": 0.5,
+        "macro_f1": 0.9948205221768441,
+        "accuracy": 0.9960258320914058
+      },
+      {
+        "threshold": 0.52,
+        "macro_f1": 0.9946615788913736,
+        "accuracy": 0.9955290611028316
+      },
+      {
+        "threshold": 0.54,
+        "macro_f1": 0.9940331467782224,
+        "accuracy": 0.9950322901142573
+      },
+      {
+        "threshold": 0.56,
+        "macro_f1": 0.9946545739842803,
+        "accuracy": 0.9955290611028316
+      },
+      {
+        "threshold": 0.58,
+        "macro_f1": 0.9946545739842803,
+        "accuracy": 0.9955290611028316
+      },
+      {
+        "threshold": 0.6,
+        "macro_f1": 0.9946545739842803,
+        "accuracy": 0.9955290611028316
+      },
+      {
+        "threshold": 0.62,
+        "macro_f1": 0.9936122982370509,
+        "accuracy": 0.994535519125683
+      },
+      {
+        "threshold": 0.64,
+        "macro_f1": 0.9913062598651745,
+        "accuracy": 0.992548435171386
+      },
+      {
+        "threshold": 0.66,
+        "macro_f1": 0.9901073190093292,
+        "accuracy": 0.9910581222056631
+      },
+      {
+        "threshold": 0.68,
+        "macro_f1": 0.9890998811922674,
+        "accuracy": 0.9900645802285146
+      },
+      {
+        "threshold": 0.7,
+        "macro_f1": 0.9878281507257021,
+        "accuracy": 0.9890710382513661
+      },
+      {
+        "threshold": 0.72,
+        "macro_f1": 0.9860079047179076,
+        "accuracy": 0.9870839542970691
+      },
+      {
+        "threshold": 0.74,
+        "macro_f1": 0.9851850343115847,
+        "accuracy": 0.9860904123199206
+      },
+      {
+        "threshold": 0.76,
+        "macro_f1": 0.9839497347923629,
+        "accuracy": 0.9846000993541977
+      },
+      {
+        "threshold": 0.78,
+        "macro_f1": 0.9818881856270619,
+        "accuracy": 0.9821162444113264
+      },
+      {
+        "threshold": 0.8,
+        "macro_f1": 0.9818881856270619,
+        "accuracy": 0.9821162444113264
+      },
+      {
+        "threshold": 0.82,
+        "macro_f1": 0.9800143767977617,
+        "accuracy": 0.9801291604570294
+      },
+      {
+        "threshold": 0.84,
+        "macro_f1": 0.9787750509637441,
+        "accuracy": 0.9786388474913065
+      },
+      {
+        "threshold": 0.86,
+        "macro_f1": 0.9727295986970722,
+        "accuracy": 0.972180824639841
+      },
+      {
+        "threshold": 0.88,
+        "macro_f1": 0.9641459086418985,
+        "accuracy": 0.9632389468455043
+      },
+      {
+        "threshold": 0.9,
+        "macro_f1": 0.9528277495916786,
+        "accuracy": 0.9508196721311475
+      }
+    ]
+  },
+  "val_animal_prob_hist": {
+    "cat": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      1,
+      0,
+      5,
+      4,
+      2,
+      0,
+      3,
+      10,
+      45,
+      305
+    ],
+    "dog": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0,
+      5,
+      1,
+      6,
+      7,
+      12,
+      38,
+      207,
+      448
+    ],
+    "neither": [
+      800,
+      72,
+      16,
+      9,
+      3,
+      6,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "exclusions": {
+    "caltech101": {
+      "dalmatian": "A dog breed. Labelling it 'neither' teaches the model dogs are not dogs.",
+      "snoopy": "Cartoon dog. Ambiguous ground truth; the brief's test photos are real photographs.",
+      "garfield": "Cartoon cat. Same reasoning as snoopy.",
+      "wild_cat": "Many images are tabby-like small wild cats that are visually indistinguishable from domestic cats.",
+      "background_google": "Random Google results used as clutter; unlabelled, and a spot check finds animals including pets."
+    },
+    "imagenette": {
+      "n02102040": "English springer spaniel \u2014 a dog breed."
+    },
+    "caltech101_kept_notes": {
+      "leopards": "Big wild cat, not a house cat. Kept as 'neither': the question we answer is 'is there a pet cat?'.",
+      "cougar_body": "Large wild feline. Kept as 'neither' for the same reason as leopards.",
+      "cougar_face": "Close-up wild feline faces. Kept, but a known source of cat/neither confusion \u2014 watch this in the matrix.",
+      "faces": "People. Kept: people are a very likely 'neither' in real photographs.",
+      "faces_easy": "People (tightly cropped). Kept.",
+      "rooster": "Farm animal common in Nigerian surroundings. Kept as a valuable hard negative.",
+      "llama": "Four-legged furry animal. Kept as a hard negative."
+    }
+  }
+}

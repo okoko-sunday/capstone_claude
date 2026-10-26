@@ -1,0 +1,11 @@
+                        PREDICTED         
+                     cat      dog  neither
+            cat      375        2        1   = 378
+TRUE        dog        3      723        0   = 726
+        neither        1        0      908   = 909
+
+Accuracy: 2006/2013 = 99.7%
+class       precision   recall       f1  support
+cat             98.9%    99.2%    99.1%      378
+dog             99.7%    99.6%    99.7%      726
+neither         99.9%    99.9%    99.9%      909
