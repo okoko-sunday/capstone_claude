@@ -26,7 +26,7 @@ behave identically.
 **Runtime → Change runtime type → GPU** before training. With `TRAIN = False`, *Restart and run all* never retrains."""),
     ("code", """# ---- 0. Setup -------------------------------------------------------------
 TRAIN = False          # True only when you want to (re)train. Assessment day: False.
-REPO_URL = "https://github.com/<your-org>/<your-repo>.git"   # <- your class repository
+REPO_URL = "https://github.com/okoko-sunday/capstone_claude.git"   # <- your class repository
 PROJECT = "/content/catdog"                                  # where the project lives in Colab
 
 import os, sys, subprocess
