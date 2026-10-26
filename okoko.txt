@@ -257,3 +257,28 @@ A longer explanation of how the pieces fit together and why. It's useful for the
 ---
 
 **How it fits together:** photos go into `data/`. `catdog/data` mixes them with the downloaded datasets, `catdog/modeling` trains and saves the model to `artifacts/`, and `catdog/inference` loads it and labels new photos. You see the results through the CLI, the notebook or the `web/` page, and `catdog/evaluation` turns them into the confusion matrix.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+There's no .dockerignore file. Without one, Docker uploads your whole folder (including the large .venv) every time it builds, which makes builds slow. Nothing breaks, it's just wasteful. I can add one if you'd like.
+Build and run (from the project folder, with Docker Desktop running):
+
+
+docker build -t catdog .
+docker run -d --name catdog -p 8000:8000 --restart unless-stopped catdog
+Then open http://localhost:8000.
+
+-d runs it in the background.
+--restart unless-stopped makes it start again by itself when Docker Desktop starts, until you stop it.
+To stop or start it later: docker stop catdog / docker start catdog.

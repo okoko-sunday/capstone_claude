@@ -21,3 +21,6 @@ artifacts/approach_b/
 # Demo model trained on synthetic images (UI preview only)
 artifacts/demo/
 data/demo_samples/
+
+# Openverse downloads (scripts/download_photos.py): check by eye before copying into data/
+catdog_photos/
