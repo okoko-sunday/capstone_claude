@@ -21,6 +21,7 @@ test_03.jpg     cat              88.0%
 | `data/own/{cat,dog,neither}/` | Your own photos, mixed into training |
 | `data/holdout/{cat,dog,neither}/` | Your held-out photos — never trained on |
 | `docs/ARCHITECTURE.md` | System design, data flow, decisions |
+| `docs/PRESENTATION.md` | **Assessment guide:** 5-minute script, real numbers, matrices, Q&A answers, day-of runbook |
 | `tests/` | pytest suite |
 
 ## Quick start
@@ -136,9 +137,11 @@ dog             92.3%   100.0%    96.0%       12
 neither        100.0%    93.3%    96.6%       15
 ```
 
-**The one mistake:** `neither/neither_008.jpg` was called **dog at 56.3%** (cat 6%, dog 56%, neither 38%). The model
-was unsure — the dog and neither scores were close — but 0.56 is above the 0.34 animal threshold, so the safety net
-did not turn it into "neither".
+**The one mistake:** `neither/neither_008.jpg`, a **goat**, was called **dog at 56.3%** (cat 6%, dog 56%, neither
+38%). A goat is four-legged, furry, dog-sized and usually photographed outdoors — what most dog photos look like —
+and there are only a few goats among the 5,151 "neither" training photos. The model was unsure, but 0.56 is above the
+0.34 animal threshold, so the safety net did not turn it into "neither". Fix: more goats, sheep and farm animals in
+the "neither" set.
 
 **Why this number is still optimistic:** these hold-out photos are web photos, mostly well lit and well framed. The
 instructor's photos will be ordinary phone photos, often dim or cluttered, so expect lower accuracy on the day.
