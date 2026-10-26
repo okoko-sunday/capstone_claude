@@ -119,8 +119,28 @@ zero; transfer learning generalises far better to phone photos.
 
 ## Your own measurements
 
-Run `python -m catdog evaluate data/holdout` and paste the matrix here:
+Hold-out set: 39 photos that were **never trained on** (12 cat, 12 dog, 15 neither), freely licensed photos from
+Openverse, credited in `catdog_photos/SOURCES.csv`. Result of `python -m catdog evaluate data/holdout`:
 
 ```
-(paste here)
+                        PREDICTED
+                     cat      dog  neither
+            cat       12        0        0   = 12
+TRUE        dog        0       12        0   = 12
+        neither        0        1       14   = 15
+
+Accuracy: 38/39 = 97.4%
+class       precision   recall       f1  support
+cat            100.0%   100.0%   100.0%       12
+dog             92.3%   100.0%    96.0%       12
+neither        100.0%    93.3%    96.6%       15
 ```
+
+**The one mistake:** `neither/neither_008.jpg` was called **dog at 56.3%** (cat 6%, dog 56%, neither 38%). The model
+was unsure — the dog and neither scores were close — but 0.56 is above the 0.34 animal threshold, so the safety net
+did not turn it into "neither".
+
+**Why this number is still optimistic:** these hold-out photos are web photos, mostly well lit and well framed. The
+instructor's photos will be ordinary phone photos, often dim or cluttered, so expect lower accuracy on the day.
+With only 39 photos, one mistake moves accuracy by about 2.6 points; with 15 photos on the day, one mistake moves it
+by 6.7 points.
