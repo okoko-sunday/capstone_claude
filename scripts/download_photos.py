@@ -58,7 +58,8 @@ PET_WORDS = re.compile(r"\b(cats?|kittens?|dogs?|pupp(y|ies)|pets?|canines?|feli
 
 # For the cat/dog folders: the title or tags must name the animal, and must not name anything that would make the
 # photo ambiguous (the other animal, look-alikes) or not a real photo of an animal (artwork).
-ART_WORDS = r"drawings?|paintings?|illustrations?|art|artwork|murals?|sketch(es)?|cartoons?|statues?|sculptures?|toys?|graffiti"
+ART_WORDS = r"drawings?|paintings?|illustrations?|art|artwork|murals?|sketch(es)?|cartoons?|statues?|sculptures?|toys?|graffiti|" \
+            r"skeletons?|costumes?|halloween|props?|figurines?|plush|mascots?|cosplay"
 ANIMAL_RULES = {
     "cat": (re.compile(r"\b(cats?|kittens?|kitty|felines?|tabby)\b", re.IGNORECASE),
             re.compile(rf"\b(dogs?|pupp(y|ies)|fox(es)?|wolf|wolves|lions?|tigers?|leopards?|{ART_WORDS})\b", re.IGNORECASE)),
