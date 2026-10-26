@@ -218,8 +218,14 @@ if UPLOAD and IN_COLAB:
     ("code", """FOLDER = "/content/test_images"   # <- the only line you change
 
 import sys; sys.path.insert(0, PROJECT)
+from pathlib import Path
 from catdog.inference import predict_folder_table
-predictions = predict_folder_table(FOLDER)"""),
+if Path(FOLDER).is_dir():
+    predictions = predict_folder_table(FOLDER)
+else:
+    print(f"No folder at {FOLDER} yet.")
+    print("Put the test photos there (Files panel → New folder → test_images, or use the upload helper above),")
+    print('then run this cell again. Rehearse with: FOLDER = "/content/catdog/data/holdout/neither"')"""),
     ("md", """## 7. Break it on purpose
 List the photos that defeat it, and why you think they do (lighting, a cat that is tiny in the frame, a goat, a fox,
 a dog-shaped toy…). That list is part of your presentation.

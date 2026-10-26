@@ -21,6 +21,7 @@ test_03.jpg     cat              88.0%
 | `data/own/{cat,dog,neither}/` | Your own photos, mixed into training |
 | `data/holdout/{cat,dog,neither}/` | Your held-out photos — never trained on |
 | `docs/ARCHITECTURE.md` | System design, data flow, decisions |
+| `docs/PRESENTATION.md` | **Assessment guide:** 5-minute script, real numbers, matrices, Q&A answers, day-of runbook |
 | `tests/` | pytest suite |
 
 ## Quick start
@@ -58,25 +59,49 @@ sub-folders `cat/ dog/ neither/` to get the confusion matrix built for you.
 
 **"Neither" approach — A (three classes) with a tuned threshold safety net.**
 Approach B (cats vs dogs + "low confidence ⇒ neither") is implemented as an experiment, not just dismissed:
-`python -m catdog train --two-class` writes `artifacts/reports/approach_b.json` with a full threshold sweep. Fill in
-your measured numbers here after running it:
+`python -m catdog train --two-class` writes `artifacts/reports/approach_b.json` with a full threshold sweep.
+Measured on the validation set (1,104 pets, 909 negatives):
 
-> *With B, the best threshold (__) kept __% of pets but caught only __% of negatives; __% of negatives were called
-> cat/dog with >90% confidence. So we moved to A.*
+> *With B, the cat-vs-dog model itself was 99.5% accurate, but the best threshold (0.91) kept only 90.9% of pets
+> (about 100 real cats and dogs pushed into "neither") and still let 5.3% of negatives through. Worse, 7.6% of the
+> negatives (69 of 909 photos of things that are not pets) were called cat or dog with **more than 90% confidence** —
+> confident and wrong, so no threshold can catch them. So we moved to A.*
+
+| | Approach B (2 classes + threshold) | Approach A (3 classes + safety net) — shipped |
+|---|---|---|
+| Validation result | balanced accuracy 92.8% at its best threshold | **2,006 / 2,013 correct = 99.7%** |
+| Negatives called cat/dog | 5.3% at best threshold; 7.6% at >90% confidence | 1 of 909 (0.1%) |
+| Threshold | 0.91 on the top probability | 0.34 on max(cat, dog) — tuned for macro-F1 |
+
+Approach A validation matrix (`artifacts/reports/validation.txt`):
+
+```
+                        PREDICTED
+                     cat      dog  neither
+            cat      375        2        1   = 378
+TRUE        dog        3      723        0   = 726
+        neither        1        0      908   = 909
+```
+
+These validation photos come from the **same sources** as training, so 99.7% is an upper bound, not what to
+expect on phone photos — see the hold-out matrix below.
 
 **Data.**
 | Source | Role | Kept | Excluded (why) |
 |---|---|---|---|
-| Oxford-IIIT Pet | cat / dog | all 7,349, `species` label | — |
-| Caltech-101 | neither | ≤3,000 sampled | `dalmatian` (dog), `snoopy`/`garfield` (cartoon pets), `wild_cat` (looks domestic), `background_google` (unlabelled clutter) |
-| Imagenette | neither | ≤3,000 sampled | `n02102040` English springer (dog) |
-| Own photos | all three | all | — |
+| Oxford-IIIT Pet | cat / dog | 1,993 cat + 4,252 dog trained (378 + 726 validation) | — |
+| Caltech-101 | neither | 2,550 trained (450 validation), sampled | `dalmatian` (dog), `snoopy`/`garfield` (cartoon pets), `wild_cat` (looks domestic), `background_google` (unlabelled clutter) |
+| Imagenette | neither | 2,550 trained (450 validation), sampled | `n02102040` English springer (dog) |
+| Extra "neither" photos | neither | 51 trained (9 validation) | Freely licensed photos of Nigerian streets, markets, food, rooms and farm animals from Openverse; every photo's creator and licence is listed in `catdog_photos/SOURCES.csv` |
+
+**Totals:** 11,396 training images (1,993 cat · 4,252 dog · 5,151 neither) and 2,013 validation images. Training
+took about 7 minutes on a Colab T4 GPU (TensorFlow 2.21, Keras 3.13).
 
 Kept on purpose: roosters, llamas, leopards, cougars, people — real "neither" cases that look a bit like pets. Full
 reasoning: `catdog/data/exclusions.py`.
 
 **Why diverse negatives:** Caltech-101 is mostly objects on plain backgrounds; alone, it teaches "neither = plain
-background". Imagenette adds cluttered real scenes and your own photos add Nigerian surroundings.
+background". Imagenette adds cluttered real scenes and the extra photos add Nigerian surroundings.
 
 **Pretrained, not from scratch:** EfficientNetV2-B0 on ImageNet. A few thousand images cannot teach edges and fur from
 zero; transfer learning generalises far better to phone photos.
@@ -95,8 +120,30 @@ zero; transfer learning generalises far better to phone photos.
 
 ## Your own measurements
 
-Run `python -m catdog evaluate data/holdout` and paste the matrix here:
+Hold-out set: 39 photos that were **never trained on** (12 cat, 12 dog, 15 neither), freely licensed photos from
+Openverse, credited in `catdog_photos/SOURCES.csv`. Result of `python -m catdog evaluate data/holdout`:
 
 ```
-(paste here)
+                        PREDICTED
+                     cat      dog  neither
+            cat       12        0        0   = 12
+TRUE        dog        0       12        0   = 12
+        neither        0        1       14   = 15
+
+Accuracy: 38/39 = 97.4%
+class       precision   recall       f1  support
+cat            100.0%   100.0%   100.0%       12
+dog             92.3%   100.0%    96.0%       12
+neither        100.0%    93.3%    96.6%       15
 ```
+
+**The one mistake:** `neither/neither_008.jpg`, a **goat**, was called **dog at 56.3%** (cat 6%, dog 56%, neither
+38%). A goat is four-legged, furry, dog-sized and usually photographed outdoors — what most dog photos look like —
+and there are only a few goats among the 5,151 "neither" training photos. The model was unsure, but 0.56 is above the
+0.34 animal threshold, so the safety net did not turn it into "neither". Fix: more goats, sheep and farm animals in
+the "neither" set.
+
+**Why this number is still optimistic:** these hold-out photos are web photos, mostly well lit and well framed. The
+instructor's photos will be ordinary phone photos, often dim or cluttered, so expect lower accuracy on the day.
+With only 39 photos, one mistake moves accuracy by about 2.6 points; with 15 photos on the day, one mistake moves it
+by 6.7 points.
