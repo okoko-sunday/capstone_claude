@@ -15,6 +15,8 @@ function initTabs() {
       t.setAttribute("aria-selected", active);
     });
     $$(".view").forEach((v) => v.classList.toggle("is-active", v.id === `view-${view}`));
+    const tab = $(`.tab[data-view="${view}"] span`);
+    if (tab) $("#crumb").textContent = tab.textContent;
     set({ view }, "view");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -58,6 +60,9 @@ async function refreshStatus() {
       set({ model }, "model");
       set({ reports }, "reports");
       const acc = model.validation?.tuned?.accuracy;
+      $("#fact-backbone").textContent = model.backbone ?? "custom";
+      const tau = model.policy?.animal_threshold;
+      $("#fact-tau").textContent = tau != null ? tau.toFixed(2) : "—";
       $("#status-text").textContent = `Model ready · ${model.backbone ?? "custom"}${acc != null ? ` · val ${(acc * 100).toFixed(1)}%` : ""}`;
     } else {
       $("#status-text").textContent = "No model loaded";
@@ -69,8 +74,19 @@ async function refreshStatus() {
   }
 }
 
+function initHero() {
+  $("#today").textContent = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  $("#hero-cta").addEventListener("click", (e) => {
+    e.preventDefault();
+    const zone = $("#dropzone");
+    zone.scrollIntoView({ behavior: "smooth", block: "center" });
+    zone.focus({ preventScroll: true });
+  });
+}
+
 initTabs();
 initTheme();
+initHero();
 initClassify();
 initEvaluate();
 initModelCard();
